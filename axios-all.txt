@@ -1,0 +1,17 @@
+    onTermSubmit = async (term) => {
+        let URL1 = 'https://api.themoviedb.org/3/movie/76341?api_key=6df1763739d4dda8cf71c3daca202b2e';
+        let URL2 = 'https://api.themoviedb.org/3/movie/76341?api_key=6df1763739d4dda8cf71c3daca202b2e';
+
+        const promise1 = axios.get(URL1, {            params: {
+
+            query: term,
+            api_key: KEY
+        }})
+        const promise2 = axios.get(URL2, {            params: {
+
+            query: term,
+            api_key: KEY
+        }})
+        axios.all([promise1, promise2]).then((response) => {console.log(response)});
+
+    }
