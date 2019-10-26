@@ -416,8 +416,8 @@ class App extends React.Component {
             if (event === "general") {
                 return
             }
-            // would call the tab immediately after click
-            //  this.onTermSubmitHandler() 
+            // call the tab immediately after click
+            this.onTermSubmitHandler() 
         })
     }
 
