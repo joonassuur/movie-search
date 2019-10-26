@@ -2,7 +2,7 @@
     display: inline-block;
 }
 .ui.container {
-    padding-bottom: 50px;
+    padding-bottom: 30px;
 }
 .compact.selection.dropdown {
     width: 100px;
@@ -44,6 +44,21 @@ a.header span {
     margin-top: 23px;
 }
 
+
+.disc {
+    margin-top: 50px;
+    border-top: 1px solid rgba(34,36,38,.15);
+    text-align: right;
+}
+
+.disc div {
+    padding-top: 10px;
+    display: inline-block;
+    font-size: 12px;
+}
+.disc div a {
+    margin-left: 5px;
+}
 
 /* loader position */
 .ui.inline.loader {

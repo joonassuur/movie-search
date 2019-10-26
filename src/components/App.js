@@ -489,7 +489,14 @@ class App extends React.Component {
                     {/* generates the results list */}
                     {this.generateList()}
                 </Results>
+                <div className="disc">
 
+                    <div>
+                    API provided by 
+                    <a href="https://www.themoviedb.org/?language=en-US" target="_blank">TMDB</a>
+                    </div>
+
+                </div>
             </div>
         )
     }
