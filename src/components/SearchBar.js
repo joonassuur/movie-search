@@ -1,22 +1,28 @@
 import React from 'react';
+import Tabs from './Tabs';
 import { Button, Select, Input, Checkbox } from 'semantic-ui-react'
 
 //initialize select input options menu
-const options = [
-    { key: 'all', text: 'All', value: 'all' },
+const moviesOptions = [
+    { key: 'keyword', text: 'Keyword', value: 'keyword' }
+  ]
+  const tvOptions = [
+    { key: 'keyword', text: 'Keyword', value: 'keyword' }
+  ]
+  const genOptions = [
     { key: 'movies', text: 'Movies', value: 'movies' },
     { key: 'tv', text: 'TV', value: 'tv' },
     { key: 'people', text: 'People', value: 'people' },
-    { key: 'keyword', text: 'Keyword', value: 'keyword' }
+    { key: 'all', text: 'All', value: 'all' }
   ]
-
 class SearchBar extends React.Component {
 
     state = { 
             term: '', 
-            value: 'movies', 
+            value: 'keyword', 
             error: false, 
-            inclEveryKW: false 
+            inclEveryKW: false,
+            activeTab: 'discMovies'
         }
 
     onInputChange = (event) => {
@@ -58,28 +64,22 @@ class SearchBar extends React.Component {
     //set current dropdown value for state
     setValue = (event, {value}) => {
         let val = {value}
+
         //because react setState is async, function dependant on the state value needs to be called as a callback
         this.setState({value: val.value}, function() {
-            this.activeSearch()
+             //set the active search mode and send it to parent
+            this.props.activeSearch(this.state.value)
         })
     }
     
-    activeSearch = () => {
-        //set the active search mode and send it to parent
-        this.props.activeSearch(this.state.value)
-    }
+
 
     reset = () => {
         //reset/clear field. Currently not in use
         this.setState({term: ''})
-        //this.props.reset()
+        this.props.reset()
     }
 
-
-    hideToggle = () => {
-        // show toggle bar when keyword search is active
-        return this.state.value === "keyword" ? "inline-block" : "none"
-    }
 
     inclEveryKW = () => {
         //set inclEveryKW state value to the parent component, as a callback to setState
@@ -89,12 +89,69 @@ class SearchBar extends React.Component {
             })
     }
 
+
+
+    //handle the tab click events, and corresponding function calls
+    tabHandler = (e) => {
+        let children = e.target.parentElement.children
+
+        for (let i = 0; i < children.length; i++) {
+            children[i].className = "item"
+        }
+
+        e.target.className = "item active";
+
+        this.setState({activeTab: e.target.getAttribute("value")}, function(){
+            
+            this.props.activeTab(this.state.activeTab)
+        })
+
+        if (e.target.getAttribute("value") === "general") {
+            this.setState({value: "movies"}, function() {
+                this.props.activeSearch(this.state.value)
+            })
+        }
+        if (e.target.getAttribute("value") === "discTV") {
+            this.setState({value: "keyword"}, function() {
+                this.props.activeSearch(this.state.value)
+            })
+        }
+        if (e.target.getAttribute("value") === "discMovies") {
+            this.setState({value: "keyword"}, function() {
+                this.props.activeSearch(this.state.value)
+            })
+        }
+    }
+
+
+
+    optionsHandler = () => {
+        if (this.state.activeTab === "discMovies") {
+            return (<Select onChange={this.setValue} 
+                            value={this.state.value}
+                            compact options={moviesOptions}  />)
+        }
+        if (this.state.activeTab === "discTV") {
+            return (<Select onChange={this.setValue} 
+                            value={this.state.value}
+                            compact options={tvOptions}  />)
+        }
+        if (this.state.activeTab === "general") {
+            return (<Select onChange={this.setValue} 
+                            value={this.state.value}
+                            compact options={genOptions}  />)
+        }
+    }
+
     render() {
+
         return (
+        <>
+        <Tabs tabHandler={this.tabHandler} />
         <div className="search-bar ui segment">
             <form  className="ui form">
                 <Checkbox 
-                        style={{display: this.hideToggle()}} 
+                        style={{display: this.state.value === "keyword" ? "inline-block" : "none"}} 
                         onClick={this.inclEveryKW}
                         toggle 
                         label="Include every keyword?" />
@@ -106,11 +163,21 @@ class SearchBar extends React.Component {
                         type='text' 
                         placeholder={this.state.value === "keyword" ? "Enter comma separated list of keywords" : this.state.error === true ? "Please enter search term" : 'Search...'}>
                     <input/>
-                    <Select onChange={this.setValue} compact options={options} value={this.state.value} />
+                    {this.optionsHandler()}
                     <Button onClick={this.onTermSubmit} type='submit'>Search</Button>
                 </Input>
+
             </form>
+
+            <Button content='Reset/Display' 
+                    className={"reset"}
+                    onClick={this.reset} 
+                    style={{display: this.state.activeTab === "general" ? "none" : "inline-block"}} 
+            />
+            
+            {this.props.children}
         </div>
+        </>
         )
     }
 }

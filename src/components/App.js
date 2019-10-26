@@ -2,13 +2,15 @@ import React from 'react';
 import axios from 'axios';
 import SearchBar from './SearchBar';
 import Results from './Results';
+import Tabs from './Tabs';
 import genres from './Genre-id';
-import { Icon, Loader} from 'semantic-ui-react'
+import { Icon, Loader, Dropdown } from 'semantic-ui-react'
 import image from '../images/no-image.png';
 import '../style.css'
 
 const KEY = "6df1763739d4dda8cf71c3daca202b2e";
 let resultCount = 0;
+
 
 class App extends React.Component {
 
@@ -16,16 +18,31 @@ class App extends React.Component {
             movies: [], 
             keywords: '', 
             inclEveryKW: false, 
-            active: 'movies', 
             error: false,
-            loaded: false
+            loaded: false,
+            term: '',
+
+            //activeSearch: the dropdown left to "search" button
+            activeSearch: 'keyword', 
+
+            //sortState = sort by
+            sortState: 'vote_average.desc',
+
+            //currently active tab
+            activeTab: 'discMovies',
         }
 
-    onTermSubmit = async (term) => {
+        
+    //term = whatever was inserted into the search input
+    onTermSubmitHandler = async (term) => {
+
         resultCount = 0
-        this.setState({loaded:false})
-        this.setState({error:false})
+        this.setState({loaded: false})
+        this.setState({error: false})
+        this.setState({term: term})
         this.setState({movies: []})
+        
+
         // define paths for different GET requests
         const discoverMovie = 'https://api.themoviedb.org/3/discover/movie'
         const discoverTV = 'https://api.themoviedb.org/3/discover/tv'
@@ -39,14 +56,38 @@ class App extends React.Component {
         const searchTV = 'https://api.themoviedb.org/3/search/tv'
         const searchPerson = 'https://api.themoviedb.org/3/search/person'
 
-        //term = whatever was inserted into the search input
 
+        //this function gets called as part of a GET request, to see where (URL) the request needs to be made depending on the active mode
+        const getURL = () => {
 
-        //this function gets called as part of a GET request, to see where (URL) the request needs to be made depending on the active search mode
-        const searchTerm = (term) => {
-            if (term) {
+            if (this.state.activeTab === "discMovies") {
 
-                switch (this.state.active) {
+                switch (this.state.activeSearch) {
+                    
+                    case 'keyword':
+                        return discoverMovie;
+    
+                    default:
+                        return discoverMovie;
+                }
+            }
+
+            if (this.state.activeTab === "discTV") {
+
+                switch (this.state.activeSearch) {
+                    
+                    case 'keyword':
+                        return discoverTV;
+    
+                    default:
+                        return discoverTV;
+                }
+            }
+
+            if (this.state.activeTab === "general") {
+
+                switch (this.state.activeSearch) {
+                    
                     case 'people':
                         return searchPerson;
 
@@ -59,33 +100,33 @@ class App extends React.Component {
                     case 'all':
                         return searchAll;
 
-                    default:
-                        return discoverMovie;
-                }
+                    case 'keyword':
+                        return searchKeyword;
 
-            //if input field is left blank
-            } else {
-                
+                    default:
+                        return searchMovie;
+                }
+            }
+
+            else {
+
                 //if invalid search term (that has no results) is entered, check if state.error was set to true. if it was, then display error
                 if (this.state.error) {
                     this.setState({loaded: true})
                     this.generateList()
                     return
                 }
-                //run "discover movies" by default when page loads
-                return discoverMovie;
+
             }
         }
 
-
-        // keyword search
-        if (this.state.active === "keyword") {
-
+        // keyword search, can search many requests in parallel
+        if (this.state.activeSearch === "keyword" && term !== undefined) {
 
             let keywordID = [];
             let promises = [];
 
-            this.asyncPush = async () => {
+            this.pushPromiseToArr = async () => {
 
                 keywordID = [];
                 promises = [];
@@ -103,9 +144,9 @@ class App extends React.Component {
                 })
             }
 
-            this.asyncCall = async () => {
+            this.checkIfKeywordsExist = async () => {
 
-                await this.asyncPush();
+                await this.pushPromiseToArr();
                 // await until all promises have been added to the array
                 let x = await Promise.all(promises)
                 //wait until x is finished and then check to see if every result > 0
@@ -115,7 +156,6 @@ class App extends React.Component {
                 function isAboveThreshold(promLen) {
                     return promLen > 0;
                 }
-                console.log(x)
                 //clear state keyword object before new query
                 this.setState({keywords: ''})
 
@@ -145,9 +185,9 @@ class App extends React.Component {
                
             }
 
-            this.asyncCall2 = async () => {
+            this.joinKeywords = async () => {
 
-                await this.asyncCall();
+                await this.checkIfKeywordsExist();
                 
 
                 if (this.state.inclEveryKW) {
@@ -164,9 +204,9 @@ class App extends React.Component {
 
             }
 
-            this.asyncCall3 = async () => {
+            this.makeRequest = async () => {
 
-                await this.asyncCall2()
+                await this.joinKeywords()
 
                 if (this.state.keywords !== '') {
                     this.setState({error: false})
@@ -179,19 +219,18 @@ class App extends React.Component {
                 
             }
             //call every async function in order and each one waits until previous is finished
-            this.asyncPush()
-            this.asyncCall()
-            this.asyncCall2()
-            this.asyncCall3()
+            this.pushPromiseToArr()
+            this.checkIfKeywordsExist()
+            this.joinKeywords()
+            this.makeRequest()
 
         } else {
 
-        //unless specifically called, this function runs when keyword search is not enabled
+        //unless specifically called, this function runs when keyword search is not performed
         this.singleRequest = () => {
 
             axios.get(
-                    this.state.active === 'keyword' && this.state.keywords.length > 0 ? 
-                    discoverMovie : searchTerm(term), {
+                getURL(), {
                 params: {
                     // with genres takes an ID integer, not a string
                     // with_genres: term,
@@ -199,16 +238,18 @@ class App extends React.Component {
                     query: term,
                     api_key: KEY,
                     poster_path: posterPath,
-                    "vote_count.gte": this.state.keywords ? 0 : 100,
+                    "vote_count.gte": this.state.activeTab === "discMovies" || this.state.activeTab === "discTV" ? 90 : undefined,
+                    sort_by: this.state.activeTab === "discMovies" || this.state.activeTab === "discTV"  ?this.state.sortState : undefined,
                     with_keywords: this.state.keywords ? this.state.keywords : undefined
                 }
             })
                 .then((response) => {
 
-                    //if no results, display error
+                    //if no results, display "nothing found"
                     if (response.data.total_results < 1) {
                         this.setState({error: true})
                     }
+
                     this.setState({
                         movies: response.data.results.map((item) => {
                             return {
@@ -245,7 +286,7 @@ class App extends React.Component {
 
     componentDidMount() {
         //run "discover" search by default when page loads, with default parameters
-       this.onTermSubmit();
+       this.onTermSubmitHandler();
     }
 
 
@@ -304,14 +345,18 @@ class App extends React.Component {
 
     }
 
-    reset = () => {
+    handleReset = () => {
         //NOT IN USE right now, supposed to clear the list
-        this.setState({ movies: [] })
+        
+        this.setState({ term: ''})
+        this.setState({ keywords: ''})
+        this.setState({ movies: [] }, function() {this.onTermSubmitHandler()})
+        
     }
 
-    activeSearch = (i) => {
+    activeSearchHandler = (i) => {
         //tells the state which search mode is currently active (movies, TV, keyword, etc)
-        this.setState({ active: i })
+        this.setState({ activeSearch: i })
     }
 
 
@@ -321,7 +366,7 @@ class App extends React.Component {
 
         if (this.state.error) {
             
-            return <div>error</div>
+            return <div>nothing found</div>
 
         } else {
 
@@ -353,33 +398,98 @@ class App extends React.Component {
         }
     }
 
+    //set current dropdown value for state
+    setValue = (event, {value}) => {
+        //because react setState is async, function dependant on the state value needs to be called as a callback
+        let val = {value}.value
+        
+        this.setState({sortState: val}, function() {
+            this.onTermSubmitHandler();
+        })
+       
+    }
 
+
+    handleTabChange = (event) => {
+
+        this.setState({activeTab: event}, function(){
+            if (event === "general") {
+                return
+            }
+            // would call the tab immediately after click
+            //  this.onTermSubmitHandler() 
+        })
+    }
 
     render() {
+
+        const sortOptions = [
+            {
+                key: 'rating',
+                text: 'Rating',
+                value: 'vote_average.desc'
+            },
+            {
+                key: 'popularity',
+                text: 'Popularity',
+                value: 'popularity.desc'
+            },
+            {
+                key: 'date_des',
+                text: 'Date (des)',
+                value: 'release_date.desc' || 'first_air_date.desc'
+            },
+            {
+                key: 'date_asc',
+                text: 'Date (asc)',
+                value: 'release_date.asc' || 'first_air_date.asc'
+            }
+
+          ]
+
         return (
             <div className="ui container" >
-                
-                <SearchBar 
-                    onTermSubmit={this.onTermSubmit} 
-                    activeSearch={this.activeSearch} 
-                    reset={this.reset} 
+
+
+                <SearchBar
+                    activeTab={this.handleTabChange}
+                    onTermSubmit={this.onTermSubmitHandler} 
+                    activeSearch={this.activeSearchHandler} 
+                    reset={this.handleReset} 
                     //function received from child component regarding toggle KW switch. Returns true/false
                     inclEveryKW={(i) => {
                         this.setState({inclEveryKW: i})
-                    }} />
+                    }} >
+
+                    <div style={{display: this.state.activeTab === "general" ? "none" : "block", textAlign:"right"}} className="dropdown-cont">
+                        <span style={{marginRight: "5px"}}>Sort by</span>
+                        <Dropdown
+                            inline
+                            options={sortOptions}
+                            onChange={this.setValue}
+                            value={this.state.sortState}
+                        />
+                    </div>
+                    
+                </SearchBar>
+                
+
                 <Loader size='large' 
-                        style={{display: this.state.loaded  ? "none" : 
-                                         this.state.error ? "none" : 
-                                        "block" }} 
-                        active 
-                        inline='centered' />
+                    style={{display: this.state.loaded  ? "none" : 
+                                     this.state.error ? "none" : 
+                                     "block" }} 
+                    active 
+                    inline='centered' 
+                />
+
                 <Results 
-                        displayOnLoad={{display: this.state.loaded ? "block" : 
-                                                 this.state.error ? "block" : 
-                                                 "none" }}>
+                    displayOnLoad={{display: this.state.loaded ? "block" : 
+                                             this.state.error ? "block" : 
+                                             "none" }}>
                     {/* generates the results list */}
                     {this.generateList()}
                 </Results>
+
             </div>
         )
     }

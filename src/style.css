@@ -1,9 +1,15 @@
 .searchLabel {
     display: inline-block;
 }
-
+.ui.container {
+    padding-bottom: 50px;
+}
 .compact.selection.dropdown {
     width: 100px;
+}
+
+button.ui.button.reset {
+    margin-top: 1em;
 }
 
 .item:first-child {
@@ -32,8 +38,14 @@ a.header span {
     color: #9f3a38 ;
 }
 
+.dropdown-cont {
+    display: inline-block;
+    float: right;
+    margin-top: 23px;
+}
 
 
+/* loader position */
 .ui.inline.loader {
     position: absolute;
     vertical-align: middle;
@@ -42,5 +54,13 @@ a.header span {
     transform: translateX(-50%) !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
+}
 
+
+@media only screen and (max-width: 767px) {
+    .ui.items:not(.unstackable)>.item>.image, .ui.items:not(.unstackable)>.item>.image>img {
+        max-width: 100%!important;
+        width: auto!important;
+        max-height: inherit!important; 
+    }
 }
