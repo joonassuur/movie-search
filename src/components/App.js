@@ -1,29 +1,37 @@
 import React from 'react';
 import axios from 'axios';
+import genres from './Genre-id';
+
 import SearchBar from './SearchBar';
 import Results from './Results';
-import Tabs from './Tabs';
-import genres from './Genre-id';
+
 import { Icon, Loader, Dropdown } from 'semantic-ui-react'
+
 import image from '../images/no-image.png';
 import '../style.css'
 
 const KEY = "6df1763739d4dda8cf71c3daca202b2e";
 let resultCount = 0;
 
-
 class App extends React.Component {
 
     state = { 
             movies: [], 
+
             keywords: '', 
-            inclEveryKW: false, 
+            genres: '',
+
             error: false,
+            responseError: false,
             loaded: false,
             term: '',
 
+            posterPath:'https://image.tmdb.org/t/p/w200',
+
+            activeURL:'https://api.themoviedb.org/3/discover/movie',
+
             //activeSearch: the dropdown left to "search" button
-            activeSearch: 'keyword', 
+            activeSearch: 'movies', 
 
             //sortState = sort by
             sortState: 'vote_average.desc',
@@ -34,11 +42,20 @@ class App extends React.Component {
 
         
     //term = whatever was inserted into the search input
-    onTermSubmitHandler = async (term) => {
+    onTermSubmitHandler = async (term, genres, keywords) => {
+        
+        if (genres) {
+            this.setState({ genres: genres.join().replace(/,/g, ",") })
+        }
 
+        if (keywords) {
+            this.setState({ keywords: keywords.join() })
+        }
+        
         resultCount = 0
         this.setState({loaded: false})
         this.setState({error: false})
+        this.setState({responseError: false})
         this.setState({term: term})
         this.setState({movies: []})
         
@@ -46,249 +63,132 @@ class App extends React.Component {
         // define paths for different GET requests
         const discoverMovie = 'https://api.themoviedb.org/3/discover/movie'
         const discoverTV = 'https://api.themoviedb.org/3/discover/tv'
-        const posterPath = 'https://image.tmdb.org/t/p/w200'
         const searchAll = 'https://api.themoviedb.org/3/search/multi'
         const searchMovie = 'https://api.themoviedb.org/3/search/movie'
-        const movieID = 'https://api.themoviedb.org/3/movie/'
-
-        const searchKeyword = 'https://api.themoviedb.org/3/search/keyword'
+     //   const movieID = 'https://api.themoviedb.org/3/movie/'
 
         const searchTV = 'https://api.themoviedb.org/3/search/tv'
         const searchPerson = 'https://api.themoviedb.org/3/search/person'
 
 
-        //this function gets called as part of a GET request, to see where (URL) the request needs to be made depending on the active mode
-        const getURL = () => {
+        //if invalid search term (that has no results) is entered, check if state.error was set to true. if it was, then display error
 
-            if (this.state.activeTab === "discMovies") {
+        this.assignURL = async () => {
+            if (this.state.error) {
+                this.setState({loaded: true})
+                this.generateList()
+                return;
 
-                switch (this.state.activeSearch) {
-                    
-                    case 'keyword':
-                        return discoverMovie;
-    
-                    default:
-                        return discoverMovie;
-                }
-            }
+            } else {
 
-            if (this.state.activeTab === "discTV") {
+                if (this.state.activeTab === "discMovies") {
 
-                switch (this.state.activeSearch) {
-                    
-                    case 'keyword':
-                        return discoverTV;
-    
-                    default:
-                        return discoverTV;
-                }
-            }
-
-            if (this.state.activeTab === "general") {
-
-                switch (this.state.activeSearch) {
-                    
-                    case 'people':
-                        return searchPerson;
-
-                    case 'movies':
-                        return searchMovie;
-
-                    case 'tv':
-                        return searchTV;
-
-                    case 'all':
-                        return searchAll;
-
-                    case 'keyword':
-                        return searchKeyword;
-
-                    default:
-                        return searchMovie;
-                }
-            }
-
-            else {
-
-                //if invalid search term (that has no results) is entered, check if state.error was set to true. if it was, then display error
-                if (this.state.error) {
-                    this.setState({loaded: true})
-                    this.generateList()
-                    return
-                }
-
-            }
-        }
-
-        // keyword search, can search many requests in parallel
-        if (this.state.activeSearch === "keyword" && term !== undefined) {
-
-            let keywordID = [];
-            let promises = [];
-
-            this.pushPromiseToArr = async () => {
-
-                keywordID = [];
-                promises = [];
-
-                //do a get request on every keyword (term), then push each request into promises array
-                term.forEach((item) => {
-
-                    promises.push(
-                        axios.get(searchKeyword, {
-                            params: {
-                                query: item,
-                                api_key: KEY
-                            }
-                        }))
-                })
-            }
-
-            this.checkIfKeywordsExist = async () => {
-
-                await this.pushPromiseToArr();
-                // await until all promises have been added to the array
-                let x = await Promise.all(promises)
-                //wait until x is finished and then check to see if every result > 0
-                let promiseLen = [];
-                x.forEach((m) => promiseLen.push(m.data.results.length))
-                //check if every element in promiseLen > 0. To see if every keyword exists
-                function isAboveThreshold(promLen) {
-                    return promLen > 0;
-                }
-                //clear state keyword object before new query
-                this.setState({keywords: ''})
-
-                // if all keywords exist, then resolve requests and push keywords into keywordID array
-                if (promiseLen.every(isAboveThreshold)) {
-                    x.map((response) => {
-
-                        if(response.data.results.length > 0) {
-                            for (let t = 0; t < term.length; t++) {
-    
-                                response.data.results.map((i) => {
-        
-                                    if (term[t] === i.name && !keywordID.includes(i.id.toString())) {
-                                        keywordID.push(i.id.toString())
-                                    }
-        
-                                })
-        
-                            }
-                        } 
-                    }) 
-                // if at least 1 keyword does not exist, return 
-                } else {
-                    this.setState({error: true})
-                    this.setState({loaded: true})
-                }
-               
-            }
-
-            this.joinKeywords = async () => {
-
-                await this.checkIfKeywordsExist();
-                
-
-                if (this.state.inclEveryKW) {
-                    this.setState({
-                        //join the keywords in keywordID array together for the API call
-                        keywords: keywordID.join()
-                    })
-                } else {
-                    this.setState({
-                        //join the keywords in keywordID array together for the API call. Replace comma with | as an OR statement instead of AND
-                        keywords: keywordID.join().replace(/,/g, "|")
-                    })
-                }
-
-            }
-
-            this.makeRequest = async () => {
-
-                await this.joinKeywords()
-
-                if (this.state.keywords !== '') {
-                    this.setState({error: false})
-                    this.singleRequest()
-                // set the state error true if keywords are not set and render error message
-                } else {
-                    this.setState({error: true})
-                    this.generateList()
-                }
-                
-            }
-            //call every async function in order and each one waits until previous is finished
-            this.pushPromiseToArr()
-            this.checkIfKeywordsExist()
-            this.joinKeywords()
-            this.makeRequest()
-
-        } else {
-
-        //unless specifically called, this function runs when keyword search is not performed
-        this.singleRequest = () => {
-
-            axios.get(
-                getURL(), {
-                params: {
-                    // with genres takes an ID integer, not a string
-                    // with_genres: term,
-                    // query searches for title/name
-                    query: term,
-                    api_key: KEY,
-                    poster_path: posterPath,
-                    "vote_count.gte": this.state.activeTab === "discMovies" || this.state.activeTab === "discTV" ? 90 : undefined,
-                    sort_by: this.state.activeTab === "discMovies" || this.state.activeTab === "discTV"  ?this.state.sortState : undefined,
-                    with_keywords: this.state.keywords ? this.state.keywords : undefined
-                }
-            })
-                .then((response) => {
-
-                    //if no results, display "nothing found"
-                    if (response.data.total_results < 1) {
-                        this.setState({error: true})
+                    switch (this.state.activeSearch) {
+                        
+                        default:
+                           this.setState({activeURL: discoverMovie}) 
                     }
+                }
 
-                    this.setState({
-                        movies: response.data.results.map((item) => {
-                            return {
-                                id: item.id,
-                                title: item.title ? item.title : item.name,
-                                // name: item.name,
-                                release_date: item.release_date ? item.release_date : item.first_air_date,
-                                image: item.poster_path ? posterPath + item.poster_path :
-                                    item.profile_path ? posterPath + item.profile_path : image,
-                                linkPath: item.title ? "movie/" : item.known_for ? "person/" : "tv/",
-                                overview: item.overview,
-                                //map returned genre array to appropriate item ID and return a span element
-                                genres: this.genres(item.genre_ids).map((g, i) => {
-                                    return (
-                                        <span key={i}> {g} </span>
-                                    )
-                                }),
-                                rating: item.vote_average > 0 ? item.vote_average :
-                                        item.vote_average === 0 ? "NR" : ''
-                            }
-                        })
-                    })
-                    //generate the components based on received values
-                    this.generateList()
-                                        
-                })
+                if (this.state.activeTab === "discTV") {
+
+                    switch (this.state.activeSearch) {
+                        
+                        default:
+                            this.setState({activeURL: discoverTV}) 
+                    }
+                }
+
+                if (this.state.activeTab === "general") {
+
+                    switch (this.state.activeSearch) {
+                        
+                        case 'people':
+                            this.setState({activeURL: searchPerson}) 
+                            break;
+
+                        case 'movies':
+                            this.setState({activeURL: searchMovie}) 
+                            break;
+
+                        case 'tv':
+                            this.setState({activeURL: searchTV}) 
+                            break;
+
+                        case 'all':
+                            this.setState({activeURL: searchAll}) 
+                            break;
+
+                        default:
+                            this.setState({activeURL: searchAll}) 
+                            break;
+                    }
+                }
+
             }
-
-            //if keyword search is not active, call "singleRequest" function by default
-            this.singleRequest()
         }
+
+        await this.assignURL()
+        this.singleRequest()
     }
+
+
+    singleRequest = () => {
+
+        axios.get(
+            this.state.activeURL, {
+            params: {
+                // with genres takes an ID integer, not a string
+                // query searches for title/name
+                with_genres: this.state.genres ? this.state.genres : undefined,
+                query: this.state.term ? this.state.term : undefined,
+                api_key: KEY,
+                poster_path: this.state.posterPath,
+                "vote_count.gte": this.state.activeTab === "discMovies" || this.state.activeTab === "discTV" ? 90 : undefined,
+                sort_by: this.state.activeTab === "discMovies" || this.state.activeTab === "discTV"  ?this.state.sortState : undefined,
+                with_keywords: this.state.keywords ? this.state.keywords : undefined
+            }
+        })
+            .then((response) => {
+
+                //if no results, display "nothing found"
+                if (response.data.total_results < 1) {
+                    this.setState({error: true})
+                }
+
+                this.setState({
+                    movies: response.data.results.map((item) => {
+                        return {
+                            id: item.id,
+                            title: item.title ? item.title : item.name,
+                            // name: item.name,
+                            release_date: item.release_date ? item.release_date : item.first_air_date,
+                            image: item.poster_path ? this.state.posterPath + item.poster_path :
+                                item.profile_path ? this.state.posterPath + item.profile_path : image,
+                            linkPath: item.title ? "movie/" : item.known_for ? "person/" : "tv/",
+                            overview: item.overview,
+                            //map returned genre array to appropriate item ID and return a span element
+                            genres: this.genres(item.genre_ids).map((g, i) => {
+                                return (
+                                    <span key={i}> {g} </span>
+                                )
+                            }),
+                            rating: item.vote_average > 0 ? item.vote_average :
+                                    item.vote_average === 0 ? "NR" : ''
+                        }
+                    })
+                })
+                //generate the components based on received values
+                this.generateList()
+                                    
+            }).catch(()=> this.setState({responseError: true, loaded: true}) )
+        }
 
 
     componentDidMount() {
         //run "discover" search by default when page loads, with default parameters
-       this.onTermSubmitHandler();
+        this.singleRequest()
     }
-
 
 
     doneLoading = () => {
@@ -322,8 +222,9 @@ class App extends React.Component {
                 for (let i = 0; i < genres.genres.length; i++) {
                     item.forEach(e => {
                         //if received value matches the ID in GENRES object, push corresponding genre, with corresponding name (received from GENRES object) to arr
-                        if (e === genres.genres[i].id && !arr.includes(genres.genres[i].name)) {
-                            arr.push(genres.genres[i].name)
+
+                        if (e === genres.genres[i].value && !arr.includes(genres.genres[i].text)) {
+                            arr.push(genres.genres[i].text)
                         }
 
                     });
@@ -345,14 +246,7 @@ class App extends React.Component {
 
     }
 
-    handleReset = () => {
-        //NOT IN USE right now, supposed to clear the list
-        
-        this.setState({ term: ''})
-        this.setState({ keywords: ''})
-        this.setState({ movies: [] }, function() {this.onTermSubmitHandler()})
-        
-    }
+
 
     activeSearchHandler = (i) => {
         //tells the state which search mode is currently active (movies, TV, keyword, etc)
@@ -365,10 +259,12 @@ class App extends React.Component {
         //generate the list resulting from the API call, or generate an error
 
         if (this.state.error) {
-            
             return <div>nothing found</div>
-
-        } else {
+        }
+        if (this.state.responseError) {
+            return <div>Something went wrong... Please try again</div>
+        } 
+        else {
 
             return (
                 
@@ -450,18 +346,18 @@ class App extends React.Component {
         return (
             <div className="ui container" >
 
-
                 <SearchBar
                     activeTab={this.handleTabChange}
                     onTermSubmit={this.onTermSubmitHandler} 
                     activeSearch={this.activeSearchHandler} 
-                    reset={this.handleReset} 
                     //function received from child component regarding toggle KW switch. Returns true/false
                     inclEveryKW={(i) => {
                         this.setState({inclEveryKW: i})
                     }} >
 
-                    <div style={{display: this.state.activeTab === "general" ? "none" : "block", textAlign:"right"}} className="dropdown-cont">
+                    {/* "sort by" component */}
+                    <div style={{display: this.state.activeTab === "general" ? "none" : "block", textAlign:"right"}} 
+                        className="dropdown-cont">
                         <span style={{marginRight: "5px"}}>Sort by</span>
                         <Dropdown
                             inline
@@ -489,14 +385,14 @@ class App extends React.Component {
                     {/* generates the results list */}
                     {this.generateList()}
                 </Results>
+
                 <div className="disc">
-
                     <div>
-                    API provided by 
-                    <a href="https://www.themoviedb.org/?language=en-US" target="_blank">TMDB</a>
+                        API provided by 
+                        <a href="https://www.themoviedb.org/?language=en-US" rel="noopener noreferrer" target="_blank">TMDB</a>
                     </div>
-
                 </div>
+
             </div>
         )
     }

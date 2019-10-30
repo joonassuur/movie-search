@@ -1,84 +1,84 @@
 const GENRES = {
     "genres": [
       {
-        "id": 28,
-        "name": "Action"
+        "value": 28,
+        "text": "Action"
       },
       {
-        "id": 12,
-        "name": "Adventure"
+        "value": 12,
+        "text": "Adventure"
       },
       {
-        "id": 16,
-        "name": "Animation"
+        "value": 16,
+        "text": "Animation"
       },
       {
-        "id": 35,
-        "name": "Comedy"
+        "value": 35,
+        "text": "Comedy"
       },
       {
-        "id": 80,
-        "name": "Crime"
+        "value": 80,
+        "text": "Crime"
       },
       {
-        "id": 99,
-        "name": "Documentary"
+        "value": 99,
+        "text": "Documentary"
       },
       {
-        "id": 18,
-        "name": "Drama"
+        "value": 18,
+        "text": "Drama"
       },
       {
-        "id": 10751,
-        "name": "Family"
+        "value": 10751,
+        "text": "Family"
       },
       {
-        "id": 14,
-        "name": "Fantasy"
+        "value": 14,
+        "text": "Fantasy"
       },
       {
-        "id": 36,
-        "name": "History"
+        "value": 36,
+        "text": "History"
       },
       {
-        "id": 27,
-        "name": "Horror"
+        "value": 27,
+        "text": "Horror"
       },
       {
-        "id": 10402,
-        "name": "Music"
+        "value": 10402,
+        "text": "Music"
       },
       {
-        "id": 9648,
-        "name": "Mystery"
+        "value": 9648,
+        "text": "Mystery"
       },
       {
-        "id": 10749,
-        "name": "Romance"
+        "value": 10764,
+        "text": "Reality"
       },
       {
-        "id": 878,
-        "name": "Science Fiction"
+        "value": 10749,
+        "text": "Romance"
       },
       {
-        "id": 10770,
-        "name": "TV Movie"
+        "value": 878,
+        "text": "Science Fiction"
       },
       {
-        "id": 53,
-        "name": "Thriller"
+        "value": 10770,
+        "text": "TV Movie"
       },
       {
-        "id": 10752,
-        "name": "War"
+        "value": 53,
+        "text": "Thriller"
       },
       {
-        "id": 37,
-        "name": "Western"
+        "value": 10752,
+        "text": "War"
       },
       {
-        "id": 10764,
-        "name": "Reality"
+        "value": 37,
+        "text": "Western"
       }
     ]
   }
