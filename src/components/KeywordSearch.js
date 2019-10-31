@@ -41,13 +41,13 @@ class KeywordSearch extends Component {
                                     value: e.id
                                 }   
                     
-                            }),...this.state.combined
-                            
+                            }),
+                            ...this.state.combined
                         ]
                     
                 }, () => this.setState({isFetching:false}))
                 
-            }).catch(function () {
+            }).catch( ()=> {
                 return
             })
         }
@@ -57,17 +57,18 @@ class KeywordSearch extends Component {
 
 
   handleChange = (e,  data ) => { 
-      const { value } = data; 
-      this.setState({value})
+
+        const { value } = data; 
+        this.setState({value, searchQuery: null})
 
 
-      if(e.target.className !== "delete icon" && e.target.textContent.length > 0) {
-          this.state.combined.push({
-              key: value[value.length-1], 
-              text: e.target.textContent, 
-              value: value[value.length-1]
+        if(e.target.className !== "delete icon" && e.target.textContent.length > 0) {
+            this.state.combined.push({
+                key: value[value.length-1], 
+                text: e.target.textContent, 
+                value: value[value.length-1]
         })
-      } else {
+        } else {
             let IDs = []
 
             this.state.combined.forEach(e=>{IDs.push(e.key)})
@@ -80,41 +81,38 @@ class KeywordSearch extends Component {
             }).indexOf(_.difference(IDs, value)[0]) 
 
             this.state.combined.splice(index, 1)
-    }
+        }
 
 
-        this.props.selectedKeywords(value)
+            this.props.selectedKeywords(value)
 
     }
   
   handleSearchChange = (e, { searchQuery }) => {
       this.setState({ searchQuery }, () => {
   
-        if(searchQuery.length >2) {this.getOptions()}  }
+        if( searchQuery.length < 3 ) {this.setState({options: this.state.combined})}
+        if( searchQuery.length > 2 ) {this.getOptions()}  }
     )}
 
   render() {
     const { options, isFetching, search, value } = this.state
 
     return (
-        <>
-
-                <Dropdown
-                    fluid
-                    onAddItem={this.handleAddition}
-                    selection
-                    multiple
-                    search={search}
-                    options={options}
-                    value={value}
-                    placeholder="Search keywords"
-                    onChange={this.handleChange}
-                    onSearchChange={this.handleSearchChange}
-                    disabled={isFetching}
-                    loading={isFetching}
-                />
-
-        </>
+            <Dropdown
+                fluid
+                onAddItem={this.handleAddition}
+                selection
+                multiple
+                search={search}
+                options={options}
+                value={value}
+                placeholder="Search keywords"
+                onChange={this.handleChange}
+                onSearchChange={this.handleSearchChange}
+                disabled={isFetching}
+                loading={isFetching}
+            />
         )
     }
 }

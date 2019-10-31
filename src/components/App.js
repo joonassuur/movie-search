@@ -29,7 +29,7 @@ class App extends React.Component {
             posterPath:'https://image.tmdb.org/t/p/w200',
             activeURL:'https://api.themoviedb.org/3/discover/movie',
 
-            voteCount: 100,
+            voteCount: 90,
 
             //activeSearch: the dropdown left to "search" button, under "General tab"
             activeSearch: 'movies', 
