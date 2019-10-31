@@ -18,32 +18,33 @@ class App extends React.Component {
     state = { 
             movies: [], 
 
-            keywords: '', 
+            term: '',
             genres: '',
-
+            keywords: '', 
+            
             error: false,
             responseError: false,
             loaded: false,
-            term: '',
 
             posterPath:'https://image.tmdb.org/t/p/w200',
-
             activeURL:'https://api.themoviedb.org/3/discover/movie',
 
-            //activeSearch: the dropdown left to "search" button
+            voteCount: 100,
+
+            //activeSearch: the dropdown left to "search" button, under "General tab"
             activeSearch: 'movies', 
 
-            //sortState = sort by
+            //sortState = Sort by
             sortState: 'vote_average.desc',
 
-            //currently active tab
+            //currently active tab (Movies/TV/General)
             activeTab: 'discMovies',
         }
 
         
     //term = whatever was inserted into the search input
     onTermSubmitHandler = async (term, genres, keywords) => {
-        
+
         if (genres) {
             this.setState({ genres: genres.join().replace(/,/g, ",") })
         }
@@ -51,14 +52,23 @@ class App extends React.Component {
         if (keywords) {
             this.setState({ keywords: keywords.join() })
         }
+
+
+/* 
+         if (genres.length > 0 || keywords.length > 0 || term.length > 0) {
+            this.setState({voteCount: 25})
+        } else {
+            this.setState({voteCount: 90})
+        }  */
         
         resultCount = 0
-        this.setState({loaded: false})
+
         this.setState({error: false})
         this.setState({responseError: false})
         this.setState({term: term})
         this.setState({movies: []})
-        
+        this.state.term === '' ? this.setState({loaded: true}) : this.setState({loaded:false})
+
 
         // define paths for different GET requests
         const discoverMovie = 'https://api.themoviedb.org/3/discover/movie'
@@ -115,10 +125,6 @@ class App extends React.Component {
                             this.setState({activeURL: searchTV}) 
                             break;
 
-                        case 'all':
-                            this.setState({activeURL: searchAll}) 
-                            break;
-
                         default:
                             this.setState({activeURL: searchAll}) 
                             break;
@@ -126,9 +132,15 @@ class App extends React.Component {
                 }
 
             }
+
         }
 
         await this.assignURL()
+
+        console.log("Tab")
+        console.log(this.state.activeTab)
+        console.log("URL")
+        console.log(this.state.activeURL)
         this.singleRequest()
     }
 
@@ -144,7 +156,7 @@ class App extends React.Component {
                 query: this.state.term ? this.state.term : undefined,
                 api_key: KEY,
                 poster_path: this.state.posterPath,
-                "vote_count.gte": this.state.activeTab === "discMovies" || this.state.activeTab === "discTV" ? 90 : undefined,
+                "vote_count.gte": this.state.voteCount,
                 sort_by: this.state.activeTab === "discMovies" || this.state.activeTab === "discTV"  ?this.state.sortState : undefined,
                 with_keywords: this.state.keywords ? this.state.keywords : undefined
             }
@@ -259,7 +271,7 @@ class App extends React.Component {
         //generate the list resulting from the API call, or generate an error
 
         if (this.state.error) {
-            return <div>nothing found</div>
+            return <div>Nothing found</div>
         }
         if (this.state.responseError) {
             return <div>Something went wrong... Please try again</div>
@@ -296,24 +308,23 @@ class App extends React.Component {
 
     //set current dropdown value for state
     setValue = (event, {value}) => {
-        //because react setState is async, function dependant on the state value needs to be called as a callback
         let val = {value}.value
         
-        this.setState({sortState: val}, function() {
+        this.setState({sortState: val}, ()=> {
             this.onTermSubmitHandler();
         })
        
     }
 
 
-    handleTabChange = (event) => {
+    handleTabChange = (tab, genres, keywords) => {
 
-        this.setState({activeTab: event}, function(){
-            if (event === "general") {
+        this.setState({activeTab: tab, error:false, responseError: false,}, ()=> {
+            if (tab === "general") {
                 return
             }
             // call the tab immediately after click
-            this.onTermSubmitHandler() 
+            this.onTermSubmitHandler('', genres, keywords)
         })
     }
 

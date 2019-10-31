@@ -77,7 +77,8 @@ class SearchBar extends React.Component {
 
         this.setState({activeTab: e.target.getAttribute("value")}, ()=>{
             
-            this.props.activeTab(this.state.activeTab)
+            this.props.activeTab(this.state.activeTab, this.state.selectedGenres, this.state.selectedKeywords)
+            
         })
 
     }
