@@ -79,7 +79,6 @@ class KeywordSearch extends Component {
                 return undefined
             }).indexOf(_.difference(IDs, value)[0]) 
 
-            console.log(this.state.combined)
             this.state.combined.splice(index, 1)
     }
 

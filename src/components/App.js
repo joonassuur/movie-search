@@ -42,7 +42,7 @@ class App extends React.Component {
         }
 
         
-    //term = whatever was inserted into the search input
+    //term = whatever was inserted into the search input, under "General"
     onTermSubmitHandler = async (term, genres, keywords) => {
 
         if (genres) {
@@ -92,21 +92,11 @@ class App extends React.Component {
             } else {
 
                 if (this.state.activeTab === "discMovies") {
-
-                    switch (this.state.activeSearch) {
-                        
-                        default:
-                           this.setState({activeURL: discoverMovie}) 
-                    }
+                        this.setState({activeURL: discoverMovie}) 
                 }
 
                 if (this.state.activeTab === "discTV") {
-
-                    switch (this.state.activeSearch) {
-                        
-                        default:
-                            this.setState({activeURL: discoverTV}) 
-                    }
+                        this.setState({activeURL: discoverTV}) 
                 }
 
                 if (this.state.activeTab === "general") {
@@ -137,10 +127,6 @@ class App extends React.Component {
 
         await this.assignURL()
 
-        console.log("Tab")
-        console.log(this.state.activeTab)
-        console.log("URL")
-        console.log(this.state.activeURL)
         this.singleRequest()
     }
 
