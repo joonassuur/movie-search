@@ -43,7 +43,9 @@ a.header span {
 .ui.divided.items>.item {
     border-top: 0;
 }
-
+.ui.items>.item:nth-child(odd) {
+    background: #fff;
+}
 
 .ui.items>.item:nth-child(even) {
     background: #f9f9f9;

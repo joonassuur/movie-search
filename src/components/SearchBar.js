@@ -42,6 +42,7 @@ class SearchBar extends React.Component {
         
         if(this.state.activeTab === 'general' && this.state.term === '') {
             // make the input bar red if input bar is left empty and dont send a request to parent
+            this.props.searchHandler('', this.state.activeTab);
             this.setState({error: true})
             return 
         }

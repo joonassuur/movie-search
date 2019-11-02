@@ -61,6 +61,9 @@ class App extends React.Component {
             responseError: false
         
         }, ()=> {
+            if (term === '' && tab === 'general')
+            return;
+
             this.initState()
         })
     }
@@ -81,6 +84,7 @@ class App extends React.Component {
         } else {
             this.setState({voteCount: 90})
         }
+        console.log(this.state.activeTab)
         
         resultCount = 0
 
@@ -364,7 +368,8 @@ class App extends React.Component {
                     }} >
 
                     {/* "sort by" component */}
-                    <div style={{display: this.state.activeTab === "general" ? "none" : "block", textAlign:"right"}} 
+                    <div 
+                        style={{display: this.state.activeTab === "general" ? "none" : "block", textAlign:"right"}} 
                         className="dropdown-cont">
                         <span style={{marginRight: "5px"}}>Sort by</span>
                         <Dropdown
