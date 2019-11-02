@@ -84,7 +84,6 @@ class App extends React.Component {
         } else {
             this.setState({voteCount: 90})
         }
-        console.log(this.state.activeTab)
         
         resultCount = 0
 
