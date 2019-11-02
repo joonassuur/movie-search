@@ -92,6 +92,24 @@ a.header span {
     }
 }
 
+@media (max-width: 528px) {
+    .ui.pagination.menu a:last-child, 
+    .ui.pagination.menu a:first-child,
+    .ui.pagination.menu a[type=ellipsisItem] {
+        display: none !important;
+    }
+    .ui.menu .item {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .ui.menu .item {
+        font-size: 10px;
+    }
+}
+
 @media only screen and (max-width: 400px) {
     .search-bar.ui.segment form.ui.form .ui.grid .eight.wide.column {
         display: block !important;
