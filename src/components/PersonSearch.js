@@ -5,9 +5,9 @@ import axios from 'axios';
 
 const KEY = "6df1763739d4dda8cf71c3daca202b2e";
 
-class KeywordSearch extends React.Component {
+class PersonSearch extends React.Component {
 
-    
+
     state = {
         isFetching: false,
         search: true,
@@ -21,7 +21,7 @@ class KeywordSearch extends React.Component {
        
         if(this.state.searchQuery) {
             this.setState({isFetching:true})
-            axios.get('https://api.themoviedb.org/3/search/keyword', {
+            axios.get('https://api.themoviedb.org/3/search/person', {
                 params: {
                     query: this.state.searchQuery,
                     api_key: KEY
@@ -85,7 +85,7 @@ class KeywordSearch extends React.Component {
         }
 
 
-            this.props.selectedKeywords(value)
+            this.props.selectedPersons(value)
 
     }
   
@@ -105,10 +105,11 @@ class KeywordSearch extends React.Component {
                 onAddItem={this.handleAddition}
                 selection
                 multiple
+                className={this.props.isDisabled}
                 search={search}
                 options={options}
                 value={value}
-                placeholder="With keywords"
+                placeholder="With people"
                 onChange={this.handleChange}
                 onSearchChange={this.handleSearchChange}
                 disabled={isFetching}
@@ -116,6 +117,10 @@ class KeywordSearch extends React.Component {
             />
         )
     }
+
+
 }
 
-export default KeywordSearch
+
+
+export default PersonSearch;

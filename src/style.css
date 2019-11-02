@@ -31,9 +31,7 @@ a.header span {
     color: #b9b9b9;
 }
 
-.ui.toggle.checkbox {
-    margin-bottom: 1em;
-}
+
 
 
 /* sort button */
@@ -41,6 +39,15 @@ a.header span {
     display: inline-block;
     float: right;
     margin-top: 23px;
+}
+
+/* input fields */
+.eight.wide.column:nth-child(1) > div:nth-child(2),
+.eight.wide.column:nth-child(2) > div:nth-child(2) {
+    margin-top: 1em;
+}
+.eight.wide.column:nth-child(2) > .ui.input {
+    width: 100%;
 }
 
 /* input field error */
@@ -52,15 +59,14 @@ a.header span {
 
 /* footer area */
 .disc {
-    margin-top: 50px;
+    margin-top: 4em;
     border-top: 1px solid rgba(34,36,38,.15);
     text-align: right;
 }
 
-.disc div {
+.disc {
     padding-top: 10px;
-    display: inline-block;
-    font-size: 12px;
+    font-size: 14px;
 }
 .disc div a {
     margin-left: 5px;
@@ -90,5 +96,8 @@ a.header span {
     .search-bar.ui.segment form.ui.form .ui.grid .eight.wide.column {
         display: block !important;
         width: 100% !important;
+    }
+    .eight.wide.column:nth-child(2) {
+        padding-top: 0;
     }
 }

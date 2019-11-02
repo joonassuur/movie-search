@@ -4,6 +4,7 @@ import genres from './Genre-id';
 
 import SearchBar from './SearchBar';
 import Results from './Results';
+import Pages from './Pages';
 
 import { Icon, Loader, Dropdown } from 'semantic-ui-react'
 
@@ -18,10 +19,15 @@ class App extends React.Component {
     state = { 
             movies: [], 
 
-            term: '',
-            genres: '',
-            keywords: '', 
-            
+            term: undefined,
+            genres: undefined,
+            keywords: undefined, 
+            persons: undefined,
+            year: undefined,
+
+            page: 1,
+            total_pages: 1,
+
             error: false,
             responseError: false,
             loaded: false,
@@ -41,45 +47,56 @@ class App extends React.Component {
             activeTab: 'discMovies',
         }
 
-        
     //term = whatever was inserted into the search input, under "General"
-    onTermSubmitHandler = async (term, genres, keywords) => {
+    searchHandler = (term, tab, genres, keywords, persons, year) => {
+    
+        this.setState({
+            term: term || undefined,
+            genres: genres || undefined,
+            keywords: keywords || undefined,
+            persons: persons || undefined,
+            year: year || undefined,
+            activeTab: tab || 'discMovies', 
+            error:false, 
+            responseError: false
+        
+        }, ()=> {
+            this.initState()
+        })
+    }
+        
+    
+    initState = async () => {
 
-        if (genres) {
-            this.setState({ genres: genres.join().replace(/,/g, ",") })
-        }
-
-        if (keywords) {
-            this.setState({ keywords: keywords.join() })
-        }
-
-
-/* 
-         if (genres.length > 0 || keywords.length > 0 || term.length > 0) {
-            this.setState({voteCount: 25})
+        const {genres, keywords, persons, year, activeTab, activeSearch} = this.state
+        
+         if (
+            (genres !== undefined) || 
+            (keywords !== undefined) || 
+            (activeTab === 'discMovies' && persons !== undefined) || 
+            (year !== undefined) ||
+            (activeTab === 'general')
+            ) {
+            this.setState({voteCount: 10})
         } else {
             this.setState({voteCount: 90})
-        }  */
+        }
         
         resultCount = 0
 
+        this.setState({loaded:false})
         this.setState({error: false})
         this.setState({responseError: false})
-        this.setState({term: term})
         this.setState({movies: []})
-        this.state.term === '' ? this.setState({loaded: true}) : this.setState({loaded:false})
-
 
         // define paths for different GET requests
         const discoverMovie = 'https://api.themoviedb.org/3/discover/movie'
         const discoverTV = 'https://api.themoviedb.org/3/discover/tv'
-        const searchAll = 'https://api.themoviedb.org/3/search/multi'
+        
         const searchMovie = 'https://api.themoviedb.org/3/search/movie'
-     //   const movieID = 'https://api.themoviedb.org/3/movie/'
-
         const searchTV = 'https://api.themoviedb.org/3/search/tv'
         const searchPerson = 'https://api.themoviedb.org/3/search/person'
-
+        const searchAll = 'https://api.themoviedb.org/3/search/multi'
 
         //if invalid search term (that has no results) is entered, check if state.error was set to true. if it was, then display error
 
@@ -91,17 +108,17 @@ class App extends React.Component {
 
             } else {
 
-                if (this.state.activeTab === "discMovies") {
+                if (activeTab === "discMovies") {
                         this.setState({activeURL: discoverMovie}) 
                 }
 
-                if (this.state.activeTab === "discTV") {
+                if (activeTab === "discTV") {
                         this.setState({activeURL: discoverTV}) 
                 }
 
-                if (this.state.activeTab === "general") {
+                if (activeTab === "general") {
 
-                    switch (this.state.activeSearch) {
+                    switch (activeSearch) {
                         
                         case 'people':
                             this.setState({activeURL: searchPerson}) 
@@ -136,15 +153,17 @@ class App extends React.Component {
         axios.get(
             this.state.activeURL, {
             params: {
-                // with genres takes an ID integer, not a string
-                // query searches for title/name
-                with_genres: this.state.genres ? this.state.genres : undefined,
-                query: this.state.term ? this.state.term : undefined,
+                with_genres: this.state.genres,
+                query: this.state.term,
                 api_key: KEY,
                 poster_path: this.state.posterPath,
+                primary_release_year: this.state.year,
+                first_air_date_year: this.state.year,
                 "vote_count.gte": this.state.voteCount,
-                sort_by: this.state.activeTab === "discMovies" || this.state.activeTab === "discTV"  ?this.state.sortState : undefined,
-                with_keywords: this.state.keywords ? this.state.keywords : undefined
+                with_people: this.state.persons,
+                sort_by: this.state.activeTab !== "general" ? this.state.sortState : undefined,
+                with_keywords: this.state.keywords,
+                page: this.state.page
             }
         })
             .then((response) => {
@@ -155,6 +174,7 @@ class App extends React.Component {
                 }
 
                 this.setState({
+                    total_pages: response.data.total_pages,
                     movies: response.data.results.map((item) => {
                         return {
                             id: item.id,
@@ -255,13 +275,12 @@ class App extends React.Component {
     generateList = () => {
 
         //generate the list resulting from the API call, or generate an error
-
         if (this.state.error) {
             return <div>Nothing found</div>
         }
         if (this.state.responseError) {
-            return <div>Something went wrong... Please try again</div>
-        } 
+            return <div>Failed to get a response from the server... Please try again</div>
+        }
         else {
 
             return (
@@ -297,22 +316,15 @@ class App extends React.Component {
         let val = {value}.value
         
         this.setState({sortState: val}, ()=> {
-            this.onTermSubmitHandler();
+            this.initState();
         })
        
     }
 
-
-    handleTabChange = (tab, genres, keywords) => {
-
-        this.setState({activeTab: tab, error:false, responseError: false,}, ()=> {
-            if (tab === "general") {
-                return
-            }
-            // call the tab immediately after click
-            this.onTermSubmitHandler('', genres, keywords)
-        })
+    pageHandler = (n) => {
+        this.setState({page: n}, ()=>this.initState())
     }
+
 
     render() {
 
@@ -344,8 +356,7 @@ class App extends React.Component {
             <div className="ui container" >
 
                 <SearchBar
-                    activeTab={this.handleTabChange}
-                    onTermSubmit={this.onTermSubmitHandler} 
+                    searchHandler={this.searchHandler}
                     activeSearch={this.activeSearchHandler} 
                     //function received from child component regarding toggle KW switch. Returns true/false
                     inclEveryKW={(i) => {
@@ -382,10 +393,14 @@ class App extends React.Component {
                     {/* generates the results list */}
                     {this.generateList()}
                 </Results>
-
+                <Pages
+                    totalPages={this.state.total_pages}
+                    pageHandler={this.pageHandler}
+                    />
                 <div className="disc">
+                    <div>Copyright © 2019</div>
                     <div>
-                        API provided by 
+                        API provided by
                         <a href="https://www.themoviedb.org/?language=en-US" rel="noopener noreferrer" target="_blank">TMDB</a>
                     </div>
                 </div>

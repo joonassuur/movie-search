@@ -2,6 +2,7 @@ import React from 'react';
 import Tabs from './Tabs';
 import SearchBar from './SearchBar'; 
 
+//this component is not in use
 class TabsSearch extends React.Component {
 
 

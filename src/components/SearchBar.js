@@ -2,6 +2,8 @@ import React from 'react';
 import Tabs from './Tabs';
 import GenreSearch from './GenreSearch';
 import KeywordSearch from './KeywordSearch';
+import PersonSearch from './PersonSearch';
+import YearSearch from './YearSearch';
 import { Button, Select, Input, Grid } from 'semantic-ui-react'
 
 //initialize select input options menu
@@ -20,6 +22,8 @@ class SearchBar extends React.Component {
             value: 'movies', 
             selectedGenres: [],
             selectedKeywords: [],
+            selectedPersons: [],
+            selectedYear : '',
             error: false, 
             activeTab: 'discMovies'
         }
@@ -30,26 +34,58 @@ class SearchBar extends React.Component {
     };
 
     onTermSubmit = (event) => {
-        
-        event.preventDefault();
-        this.setState({error: false})
 
+        if(event)
+        event.preventDefault();
+
+        this.setState({error: false})
+        
         if(this.state.activeTab === 'general' && this.state.term === '') {
             // make the input bar red if input bar is left empty and dont send a request to parent
             this.setState({error: true})
             return 
         }
-        
 
-        //send KW/genre arrays to parent 
-        if (this.state.activeTab !== 'general') {
-            this.props.onTermSubmit('', this.state.selectedGenres, this.state.selectedKeywords);
-        } else {
-        //submit a search term to parent
-            this.props.onTermSubmit(this.state.term);
+        if (this.state.activeTab === 'general') {
+            //submit a search term to parent
+            this.props.searchHandler(this.state.term, this.state.activeTab);   
+            return
         }
-        
+
+        //send search info to parent
+        this.props.searchHandler(
+            '', 
+            this.state.activeTab,
+            this.state.selectedGenres.join().replace(/,/g, ","), 
+            this.state.selectedKeywords.join(), 
+            this.state.selectedPersons.join(),
+            this.state.selectedYear
+        );
+         
+
     }
+
+
+    //handle the tab click events, and corresponding function calls
+    tabHandler = (e) => {
+
+        //  const {activeTab, SelectedGenres, selectedKeywords} = this.state;
+  
+          let children = e.target.parentElement.children
+  
+          for (let i = 0; i < children.length; i++) {
+              children[i].className = "item"
+          }
+  
+          e.target.className = "item active";
+  
+          this.setState({activeTab: e.target.getAttribute("value")}, ()=>{
+                
+                this.onTermSubmit()          
+          })
+  
+      }
+
 
     //set current dropdown value for state
     setValue = (event, {value}) => {
@@ -61,27 +97,6 @@ class SearchBar extends React.Component {
             this.props.activeSearch(this.state.value)
         })
     }
-    
-
-
-
-    //handle the tab click events, and corresponding function calls
-    tabHandler = (e) => {
-        let children = e.target.parentElement.children
-
-        for (let i = 0; i < children.length; i++) {
-            children[i].className = "item"
-        }
-
-        e.target.className = "item active";
-
-        this.setState({activeTab: e.target.getAttribute("value")}, ()=>{
-            
-            this.props.activeTab(this.state.activeTab, this.state.selectedGenres, this.state.selectedKeywords)
-            
-        })
-
-    }
 
 
     render() {
@@ -89,7 +104,6 @@ class SearchBar extends React.Component {
         return (
         <>
             <Tabs tabHandler={this.tabHandler} />
-            
             <div className="search-bar ui segment">
                 <form  className="ui form">
                     
@@ -98,41 +112,55 @@ class SearchBar extends React.Component {
 
                         <Grid.Column width={8}>
                             <GenreSearch 
-                                
                                 selectGenres={(e) => {
                                     this.setState({selectedGenres: e})
                                 }}
+                            />
+                            <PersonSearch 
+                                isDisabled={this.state.activeTab !== 'discMovies' ? 'disabled' : ''}
+                                selectedPersons={(e) => {
+                                    this.setState({selectedPersons: e})
+                                }} 
                             />
                         </Grid.Column>
 
                         <Grid.Column width={8}>
                             <KeywordSearch 
-                                    selectedKeywords={(e) => {
-                                        this.setState({selectedKeywords: e})
-                                    }} 
-                                />
+                                selectedKeywords={(e) => {
+                                    this.setState({selectedKeywords: e})
+                                }} 
+                            />
+                            <YearSearch
+                                selectedYear={(e) => {
+                                    this.setState({selectedYear: Number(e)})
+                                }} 
+                                
+                            />
                         </Grid.Column>
 
                     </Grid>
 
-                    <Input  className={`fluid ${this.state.error === true ? "error" : ""}`}
+
+                    <Input  className={`fluid ${this.state.error ? "error" : ""}`}
                             style={{display: this.state.activeTab === 'general' ? 'flex' : 'none'}}
                             onSubmit={this.onTermSubmit} 
                             value={this.state.term} 
                             action
                             onChange={this.onInputChange}
                             type='text' 
-                            placeholder={this.state.value === "keyword" ? "Enter comma separated list of keywords" : this.state.error === true ? "Please enter search term" : 'Search...'}>
+                            placeholder={this.state.value === "keyword" ? "Enter comma separated list of keywords" : this.state.error ? "Please enter search term" : 'Search...'}>
                         <input/>
                         <Select onChange={this.setValue} 
                                 value={this.state.value}
                                 compact options={genOptions}  
                         />
+                        {/* button for General tab */}
                         <Button onClick={this.onTermSubmit} type='submit'>Search</Button>
                     </Input>
 
                 </form>
 
+                {/* button for Movies and TV tabs */}
                 <Button content='Search' 
                         className="search-button"
                         onClick={this.onTermSubmit} 

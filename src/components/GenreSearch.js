@@ -27,7 +27,7 @@ class GenreSearch extends Component {
             multiple={multiple}
             options={options}
             value={value}
-            placeholder='Search genres'
+            placeholder='With genres'
             onChange={this.handleChange}
           />
 
