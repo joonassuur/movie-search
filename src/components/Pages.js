@@ -1,33 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pagination } from 'semantic-ui-react'
 
-class Pages extends React.Component {
 
-    state = {
-        value: 1
+function Pages(props) {
+
+    const [value, setValue] = useState(1)
+
+    const clickHandler = (e, data) => {
+        setValue(()=>data.activePage)
     }
 
-    clickHandler = (e, data) => {
+    React.useEffect(() => {
+        props.pageHandler(value)
+      }, [value]);
 
-        this.setState({value: data.activePage}, ()=> 
-            this.props.pageHandler(this.state.value)
-        )        
-    }
-
-    render () {
-        return (
-            <div
-                style={{textAlign: "center", marginTop: "4em"}}
-            >
-                <Pagination 
-                    onPageChange={this.clickHandler}
-                    activePage={this.state.value} 
-                    totalPages={this.props.totalPages} 
-                />
-            </div>
-        )
-    }
-
+    return (
+        <div
+            style={{textAlign: "center", marginTop: "4em"}}
+        >
+            <Pagination 
+                onPageChange={clickHandler}
+                activePage={value} 
+                totalPages={props.totalPages} 
+            />
+        </div>
+    )
 }
 
 

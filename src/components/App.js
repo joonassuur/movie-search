@@ -6,7 +6,7 @@ import SearchBar from './SearchBar';
 import Results from './Results';
 import Pages from './Pages';
 
-import { Icon, Loader, Dropdown } from 'semantic-ui-react'
+import { Icon, Loader, Dropdown, Label } from 'semantic-ui-react'
 
 import image from '../images/no-image.png';
 import '../style.css'
@@ -28,8 +28,11 @@ class App extends React.Component {
             page: 1,
             total_pages: 1,
 
+            //error = "nothing found"
             error: false,
+            //responseError = got an error from the server
             responseError: false,
+            //unless loaded = true, show spinner
             loaded: false,
 
             posterPath:'https://image.tmdb.org/t/p/w200',
@@ -41,7 +44,7 @@ class App extends React.Component {
             activeSearch: 'movies', 
 
             //sortState = Sort by
-            sortState: 'vote_average.desc',
+            sortState: 'popularity.desc',
 
             //currently active tab (Movies/TV/General)
             activeTab: 'discMovies',
@@ -60,7 +63,7 @@ class App extends React.Component {
             error:false, 
             responseError: false
         
-        }, ()=> {
+        }, () => {
             if (term === '' && tab === 'general')
             return;
 
@@ -73,7 +76,7 @@ class App extends React.Component {
 
         const {genres, keywords, persons, year, activeTab, activeSearch} = this.state
         
-         if (
+        if (
             (genres !== undefined) || 
             (keywords !== undefined) || 
             (activeTab === 'discMovies' && persons !== undefined) || 
@@ -140,13 +143,9 @@ class App extends React.Component {
                             break;
                     }
                 }
-
             }
-
         }
-
         await this.assignURL()
-
         this.singleRequest()
     }
 
@@ -169,41 +168,47 @@ class App extends React.Component {
                 page: this.state.page
             }
         })
-            .then((response) => {
+        .then((response) => {
 
-                //if no results, display "nothing found"
-                if (response.data.total_results < 1) {
-                    this.setState({error: true})
-                }
+            //if no results, display "nothing found"
+            if (response.data.total_results < 1) {
+                this.setState({error: true, loaded: true})
+            }
 
-                this.setState({
-                    total_pages: response.data.total_pages,
-                    movies: response.data.results.map((item) => {
-                        return {
-                            id: item.id,
-                            title: item.title ? item.title : item.name,
-                            // name: item.name,
-                            release_date: item.release_date ? item.release_date : item.first_air_date,
-                            image: item.poster_path ? this.state.posterPath + item.poster_path :
-                                item.profile_path ? this.state.posterPath + item.profile_path : image,
-                            linkPath: item.title ? "movie/" : item.known_for ? "person/" : "tv/",
-                            overview: item.overview,
-                            //map returned genre array to appropriate item ID and return a span element
-                            genres: this.genres(item.genre_ids).map((g, i) => {
-                                return (
-                                    <span key={i}> {g} </span>
-                                )
-                            }),
-                            rating: item.vote_average > 0 ? item.vote_average :
-                                    item.vote_average === 0 ? "NR" : ''
-                        }
-                    })
+            this.setState({
+                total_pages: response.data.total_pages,
+                movies: response.data.results.map((item) => {
+                    return {
+                        id: item.id,
+                        title: item.title ? item.title : item.name,
+                        // name: item.name,
+                        release_date: item.release_date ? item.release_date : item.first_air_date,
+                        image: item.poster_path ? this.state.posterPath + item.poster_path :
+                            item.profile_path ? this.state.posterPath + item.profile_path : image,
+                        linkPath: item.title ? "movie/" : item.known_for ? "person/" : "tv/",
+                        overview: item.overview,
+                        //map returned genre array to appropriate item ID and return a span element
+                        genres: this.genres(item.genre_ids).map((g, i) => {
+                            return (
+
+
+                                <Label key={i} key={g}>
+                                    {g}
+                                </Label>
+                            )
+                        }),
+                        rating: item.vote_average > 0 ? item.vote_average :
+                                item.vote_average === 0 ? "NR" : ''
+                    }
                 })
-                //generate the components based on received values
-                this.generateList()
+            })
+            //generate the list based on response
+            this.generateList()
                                     
-            }).catch(()=> this.setState({responseError: true, loaded: true}) )
-        }
+        })
+        .catch( ()=> this.setState({responseError: true, loaded: true}) )
+    }
+
 
 
     componentDidMount() {
@@ -321,7 +326,6 @@ class App extends React.Component {
         this.setState({sortState: val}, ()=> {
             this.initState();
         })
-       
     }
 
     pageHandler = (n) => {
@@ -333,14 +337,14 @@ class App extends React.Component {
 
         const sortOptions = [
             {
-                key: 'rating',
-                text: 'Rating',
-                value: 'vote_average.desc'
-            },
-            {
                 key: 'popularity',
                 text: 'Popularity',
                 value: 'popularity.desc'
+            },
+            {
+                key: 'rating',
+                text: 'Rating',
+                value: 'vote_average.desc'
             },
             {
                 key: 'date_des',

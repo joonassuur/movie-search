@@ -31,6 +31,20 @@ a.header span {
     color: #b9b9b9;
 }
 
+/* tabs */
+
+.ui.inverted.menu .orange.active.item, .ui.inverted.orange.menu {
+    background-color: #72aec3  !important;    
+}
+
+/* labels */
+
+.extra .ui.label {
+    background-color: #72aec3!important;
+    color: #fff !important;
+
+}
+
 /* list items */
 .ui.relaxed.divided.items>.item {
     margin: 1em 0 !important;
@@ -48,7 +62,7 @@ a.header span {
 }
 
 .ui.items>.item:nth-child(even) {
-    background: #f9f9f9;
+    background: #f3f3f3;
 }
 
 

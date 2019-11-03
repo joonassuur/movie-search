@@ -104,7 +104,7 @@ class SearchBar extends React.Component {
         
         return (
         <>
-            <Tabs tabHandler={this.tabHandler} />
+            
             <div className="search-bar ui segment">
                 <form  className="ui form">
                     
@@ -171,6 +171,7 @@ class SearchBar extends React.Component {
                 {/* "sort by" component */}
                 {this.props.children}
             </div>
+            <Tabs tabHandler={this.tabHandler} />
         </>
         )
     }

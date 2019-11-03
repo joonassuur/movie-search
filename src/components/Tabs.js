@@ -1,19 +1,17 @@
 import React from 'react';
 
-class Tabs extends React.Component {
 
+function Tabs(props) {
 
-    render() {
-        return (
-            <div className="ui secondary menu">
-                <a  value="discMovies" onClick={this.props.tabHandler} className="active item">Movies</a>
-                <a  value="discTV" onClick={this.props.tabHandler} className="item">TV</a>
-                <a  value="general" onClick={this.props.tabHandler} className="item">General</a>
-            </div>
-        )
-    }
-
+    return (
+        <div className="ui orange inverted menu">
+            <a  value="discMovies" onClick={props.tabHandler} className="active item">Movies</a>
+            <a  value="discTV" onClick={props.tabHandler} className="item">TV</a>
+            <a  value="general" onClick={props.tabHandler} className="item">General</a>
+        </div>
+    )
 
 }
+
 
 export default Tabs;
