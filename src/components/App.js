@@ -319,72 +319,29 @@ class App extends React.Component {
         }
     }
 
-    //set current dropdown value for state
-    setValue = (event, {value}) => {
-        let val = {value}.value
-        
-        this.setState({sortState: val}, ()=> {
-            this.initState();
-        })
-    }
+
 
     pageHandler = (n) => {
         this.setState({page: n}, ()=>this.initState())
     }
 
+    sortHandler =(s) => {
+        this.setState({sortState: s}, () => this.initState())
+    }
 
     render() {
-
-        const sortOptions = [
-            {
-                key: 'popularity',
-                text: 'Popularity',
-                value: 'popularity.desc'
-            },
-            {
-                key: 'rating',
-                text: 'Rating',
-                value: 'vote_average.desc'
-            },
-            {
-                key: 'date_des',
-                text: 'Date (des)',
-                value: 'release_date.desc' || 'first_air_date.desc'
-            },
-            {
-                key: 'date_asc',
-                text: 'Date (asc)',
-                value: 'release_date.asc' || 'first_air_date.asc'
-            }
-
-          ]
-
         return (
             <div className="ui container" >
 
                 <SearchBar
+                    sortHandler={this.sortHandler}
                     searchHandler={this.searchHandler}
                     activeSearch={this.activeSearchHandler} 
                     //function received from child component regarding toggle KW switch. Returns true/false
                     inclEveryKW={(i) => {
                         this.setState({inclEveryKW: i})
-                    }} >
-
-                    {/* "sort by" component */}
-                    <div 
-                        style={{display: this.state.activeTab === "general" ? "none" : "block", textAlign:"right"}} 
-                        className="dropdown-cont">
-                        <span style={{marginRight: "5px"}}>Sort by</span>
-                        <Dropdown
-                            inline
-                            options={sortOptions}
-                            onChange={this.setValue}
-                            value={this.state.sortState}
-                        />
-                    </div>
-                    
+                    }} >                    
                 </SearchBar>
-                
 
                 <Loader size='large' 
                     style={{display: this.state.loaded  ? "none" : 
@@ -401,10 +358,12 @@ class App extends React.Component {
                     {/* generates the results list */}
                     {this.generateList()}
                 </Results>
+
                 <Pages
                     totalPages={this.state.total_pages}
                     pageHandler={this.pageHandler}
-                    />
+                />
+                
                 <div className="disc">
                     <div>Copyright © 2019</div>
                     <div>

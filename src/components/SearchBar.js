@@ -4,7 +4,7 @@ import GenreSearch from './GenreSearch';
 import KeywordSearch from './KeywordSearch';
 import PersonSearch from './PersonSearch';
 import YearSearch from './YearSearch';
-import { Button, Select, Input, Grid } from 'semantic-ui-react'
+import { Button, Select, Input, Grid, Dropdown } from 'semantic-ui-react'
 
 //initialize select input options menu
 
@@ -25,7 +25,10 @@ class SearchBar extends React.Component {
             selectedPersons: [],
             selectedYear : '',
             error: false, 
-            activeTab: 'discMovies'
+            activeTab: 'discMovies',
+
+            //sortState = Sort by
+            sortState: 'popularity.desc',
         }
 
     onInputChange = (event) => {
@@ -81,7 +84,9 @@ class SearchBar extends React.Component {
           e.target.className = "item active";
   
           this.setState({activeTab: e.target.getAttribute("value")}, ()=>{
-                
+                if (this.state.activeTab === "general")
+                    return;
+                    
                 this.onTermSubmit()          
           })
   
@@ -100,8 +105,41 @@ class SearchBar extends React.Component {
     }
 
 
+        //set current dropdown value for state
+        setSortValue = (event, {value}) => {
+            let val = {value}.value
+            
+            this.setState({sortState: val}, ()=> {
+                this.props.sortHandler(this.state.sortState);
+            })
+        }
+
     render() {
         
+        const sortOptions = [
+            {
+                key: 'popularity',
+                text: 'Popularity',
+                value: 'popularity.desc'
+            },
+            {
+                key: 'rating',
+                text: 'Rating',
+                value: 'vote_average.desc'
+            },
+            {
+                key: 'date_des',
+                text: 'Date (des)',
+                value: 'release_date.desc' || 'first_air_date.desc'
+            },
+            {
+                key: 'date_asc',
+                text: 'Date (asc)',
+                value: 'release_date.asc' || 'first_air_date.asc'
+            }
+
+          ]
+
         return (
         <>
             
@@ -167,7 +205,18 @@ class SearchBar extends React.Component {
                         onClick={this.onTermSubmit} 
                         style={{display: this.state.activeTab === "general" ? "none" : "inline-block"}} 
                 />
-                
+                {/* "sort by" component */}
+                <div 
+                    style={{display: this.state.activeTab === "general" ? "none" : "block", textAlign:"right"}} 
+                    className="dropdown-cont">
+                    <span style={{marginRight: "5px"}}>Sort by</span>
+                    <Dropdown
+                        inline
+                        options={sortOptions}
+                        onChange={this.setSortValue}
+                        value={this.state.sortState}
+                    />
+                </div>
                 {/* "sort by" component */}
                 {this.props.children}
             </div>

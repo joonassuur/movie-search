@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pagination } from 'semantic-ui-react'
 
-
+/* pagination component */
 function Pages(props) {
 
     const [value, setValue] = useState(1)
